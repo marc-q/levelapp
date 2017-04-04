@@ -12,20 +12,22 @@
 		<div class="main">
 			<div class="b"></div>
 		</div>
+		<pre class="output">
+		</pre>
 		<script>
-			var output = document.querySelector('.main');
-			var b = document.querySelector('.b');
+			var m = document.querySelector ('.main');
+			var b = document.querySelector ('.b');
+			var outpout = document.querySelector ('.output');
 			
-			var maxx = output.clientWidth - b.clientWidth;
+			var maxx = m.clientWidth - b.clientWidth;
 			
 			function cb_orientation (event)
 			{
-				var absolute = event.absolute;
 				var z = event.alpha;
+				
+				output.innerHTML = "alpha: " + z + "\n";
 
 				z += 90;
-				
-				//
 				b.style.left = (maxx*z/180 -10) + "px";
 			}
 			
