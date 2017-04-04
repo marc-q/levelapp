@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Web App</title>
+		<style>
+			.main {width: 100%; height: 100%; position: absolute; top: 0px; left: 0px;}
+			.b {width: 10%; height: 10%; background-color: green; position: absolute; top: 40%;}
+		</style>
+	</head>
+	<body>
+		<div class="main">
+			<div class="b"></div>
+		</div>
+		<script>
+			var output = document.querySelector('.main');
+			var b = document.querySelector('.b');
+			
+			var maxx = output.clientWidth - b.clientWidth;
+			
+			function cb_orientation (event)
+			{
+				var absolute = event.absolute;
+				var z = event.alpha;
+
+				z += 90;
+				
+				//
+				b.style.left = (maxx*z/180 -10) + "px";
+			}
+			
+			window.addEventListener ('deviceorientation', cb_orientation);
+		</script>
+	</body>
+</html>
