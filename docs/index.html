@@ -23,10 +23,14 @@
 			
 			function cb_orientation (event)
 			{
+				var x = event.beta;
+				var y = event.gamma;
 				var z = event.alpha;
 				
 				output.innerHTML = "alpha: " + z + "\n";
-
+				output.innerHTML += "beta: " + y + "\n";
+				output.innerHTML += "gamma: " + z + "\n";
+				
 				z += 180;
 				b.style.left = (maxx*z/540 - b.clientWidth) + "px";
 			}
