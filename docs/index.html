@@ -27,10 +27,9 @@
 				
 				output.innerHTML = "alpha: " + z + "\n";
 
-				z += 90;
-				b.style.left = (maxx*z/180 -10) + "px";
+				z += 180;
+				b.style.left = (maxx*z/540 - b.clientWidth) + "px";
 			}
-			
 			window.addEventListener ('deviceorientation', cb_orientation);
 		</script>
 	</body>
