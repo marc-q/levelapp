@@ -5,7 +5,7 @@
 		<title>Web App</title>
 		<style>
 			.main {width: 100%; height: 100%; position: absolute; top: 0px; left: 0px;}
-			.b {width: 10%; height: 10%; background-color: green; position: absolute; top: 40%;}
+			.b {width: 10%; height: 10%; background-color: green; position: absolute; top: 40%; left: 40%;}
 		</style>
 	</head>
 	<body>
@@ -27,12 +27,19 @@
 				var y = event.gamma;
 				var z = event.alpha;
 				
+				/*
 				output.innerHTML = "alpha: " + z + "\n";
 				output.innerHTML += "beta: " + y + "\n";
 				output.innerHTML += "gamma: " + z + "\n";
-				
-				z += 180;
-				b.style.left = (maxx*z/540 - b.clientWidth) + "px";
+				*/
+				if (z < 40)
+				{
+					b.style.background = "green";
+				}
+				else
+				{
+					b.style.background = "white";
+				}
 			}
 			window.addEventListener ('deviceorientation', cb_orientation);
 		</script>
