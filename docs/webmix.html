@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>WebMix</title>
+		<style>
+			html {background: #171717; color: white; font-family: freesans;}
+			body {width: 90%; min-height: 95vh; margin-left: 5%;}
+			div.player {width: 40%; height: 80vh; position: relative;}
+			div.master {width: 19%;}
+			
+			button, div.player {border: 1px solid white;}
+			button, input[type="range"] {height: 50px; background: none; margin: 5px;}
+			button {width: 50px; border-radius: 100%; border-color: grey;}
+			
+			input[type="range"].vslide {height: auto;}
+			input[type="range"].trackpos, input[type="range"]#pan {margin: 0px; padding: 0px;}
+			
+			/* LCD */
+			.lcd {height: 48px; line-height: 12px; padding: 1%; border: 1px solid grey;}
+			
+			/* MODULE */
+			form.mod {border-bottom: 1px solid grey; display: flex;}
+			div.mod_left {width: 90%;}
+			div.mod_right {width: 10%;}
+			
+			div.basemod {border-bottom: 2px solid darkgrey;}
+			
+			form.mod label {font-size: 12px;}
+			
+			.dropzone {border-top: 1px solid grey; position: absolute; bottom: 0;}
+			.dropzone input {content: "Select file...";}
+			
+			input[type="range"].trackpos, input[type="range"]#pan, .dropzone, .dropzone input {width: 100%;}
+			
+			.left, div.player, div.mod_left, .vslide {float: left;}
+			.right, div.mod_right {float: right;}
+			
+			.tcenter, button, .dropzone input {text-align: center;}
+			
+			.green {color: green;}
+			.yellow {color: yellow;}
+			.red {color: red;}
+			.orange, button.active {color: orange;}
+			.grey, form.mod label, .dropzone input {color: grey}
+			
+			 footer {width: 100%; height: 50px; position: fixed; bottom: 0; color: grey;}
+		</style>
+	</head>
+	<body>
+		<div id="decka" class="player">
+			<audio id="aplay_a">Not Supported!</audio>
+			
+			<div class="basemod">
+				<button type="button" class="green" onclick="aplay_a.play ();">PLY</button>
+				<button type="button" class="red" onclick="aplay_a.pause ();">STP</button>
+				<button type="button" class="yellow">CUE</button>
+				
+				<input type="range" class="right" step="0.1" min="-1" max="1" value="0" oninput="decka.set_pan (this.value);"/>
+				<input type="range" class="right" step="0.1" max="1" value="1" oninput="decka.set_gain (this.value);"/>
+			</div>
+			
+			<div class="basemod">
+			<input type="range" class="trackpos" value="0"/>
+			</div>
+			
+			<form class="mod">
+				<div class="mod_left">
+					<input type="range" id="flt_a_low_v" class="vslide" max="10000" value="1000" orient="vertical" oninput="decka.filter_set_freq ();"/>
+					<label class="left">Low<br />Freq</label>
+					
+					<input type="range" id="flt_a_low_g" class="vslide" min="-40" max="40" value="1" orient="vertical" oninput="decka.filter_set_gain ();"/>
+					<label class="left">Low<br />Gain</label>
+					
+					<input type="range" id="flt_a_high_v" class="vslide" max="10000" value="1000" orient="vertical" oninput="decka.filter_set_freq ();"/>
+					<label class="left">High<br />Freq</label>
+					
+					<input type="range" id="flt_a_high_g" class="vslide" min="-40" max="40" value="1" orient="vertical" oninput="decka.filter_set_gain ();"/>
+					<label class="left">High<br />Gain</label>
+				</div>
+				<div class="mod_right">
+					<button type="reset">RST</button>
+					<button type="button" id="flt_a_btn" onclick="decka.filter_toggle ();">FLT</button>
+				</div>
+			</form>
+			
+			<form class="mod">
+				<div class="mod_left">
+					<input type="range" class="cpr_thr vslide" min="-100" max="0" value="-24" orient="vertical" oninput="decka.set_cpr_thr (this.value);"/>
+					<label class="left">Threshold</label>
+					
+					<input type="range" class="cpr_knee vslide" min="0" max="40" value="30" orient="vertical" oninput="decka.set_cpr_knee (this.value);"/>
+					<label class="left">Knee</label>
+					
+					<input type="range" class="cpr_ratio vslide" min="1" max="20" value="12" orient="vertical" oninput="decka.set_cpr_ratio (this.value);"/>
+					<label class="left">Ratio</label>
+					
+					<input type="range" class="cpr_reduc vslide" min="-20" max="0" value="0" orient="vertical" oninput="decka.set_cpr_reduc (this.value);"/>
+					<label class="left">Reduction</label>
+					
+					<input type="range" class="cpr_atck vslide" step="0.01" max="1" value="0.003" orient="vertical" oninput="decka.set_cpr_atck (this.value);"/>
+					<label class="left">Attack</label>
+					
+					<input type="range" class="cpr_rel vslide" step="0.01" max="1" value="0.25" orient="vertical" oninput="decka.set_cpr_rel (this.value);"/>
+					<label class="left">Release</label>
+				</div>
+				<div class="mod_right">
+					<button type="reset">RST</button>
+					<button type="button" id="cpr_a_btn" onclick="decka.compressor_toggle ();">CPR</button>
+				</div>
+			</form>
+			
+			<form class="mod dropzone" type="file">
+				<input type="file" placeholder="DROP SONG HERE!" onchange="decka.load_track (this.files);"/>
+			</form>
+		</div>
+		
+		<div class="master left">
+			<p class="lcd tcenter"><br />WebMix</p>
+			<input type="range" id="pan" step="0.1" min="-1" max="1" value="0" oninput="mix_pan (this.value);"/>
+			<br />
+		</div>
+		
+		<div id="deckb" class="player">
+			<audio id="aplay_b">Not Supported!</audio>
+			
+			<div class="basemod">
+				<button type="button" class="green" onclick="aplay_b.play ();">PLY</button>
+				<button type="button" class="red" onclick="aplay_b.pause ();">STP</button>
+				<button type="button" class="yellow">CUE</button>
+				
+				<input type="range" class="right" step="0.1" min="-1" max="1" value="0" oninput="deckb.set_pan (this.value);"/>
+				<input type="range" class="right" step="0.1" max="1" value="1" oninput="deckb.set_gain (this.value);"/>
+			</div>
+			
+			<div class="basemod">
+			<input type="range" class="trackpos" value="0"/>
+			</div>
+			
+			<form class="mod">
+				<div class="mod_left">
+					<input type="range" id="flt_b_low_v" class="vslide" max="10000" value="1000" orient="vertical" oninput="deckb.filter_set_freq ();"/>
+					<label class="left">Low<br />Freq</label>
+					
+					<input type="range" id="flt_b_low_g" class="vslide" min="-40" max="40" value="1" orient="vertical" oninput="deckb.filter_set_gain ();"/>
+					<label class="left">Low<br />Gain</label>
+					
+					<input type="range" id="flt_b_high_v" class="vslide" max="10000" value="1000" orient="vertical" oninput="deckb.filter_set_freq ();"/>
+					<label class="left">High<br />Freq</label>
+					
+					<input type="range" id="flt_b_high_g" class="vslide" min="-40" max="40" value="1" orient="vertical" oninput="deckb.filter_set_gain ();"/>
+					<label class="left">High<br />Gain</label>
+				</div>
+				<div class="mod_right">
+					<button type="reset">RST</button>
+					<button type="button" id="flt_b_btn" onclick="deckb.filter_toggle ();">FLT</button>
+				</div>
+			</form>
+			
+			<form class="mod">
+				<div class="mod_left">
+					<input type="range" class="cpr_thr vslide" min="-100" max="0" value="-24" orient="vertical" oninput="deckb.set_cpr_thr (this.value);"/>
+					<label class="left">Threshold</label>
+					
+					<input type="range" class="cpr_knee vslide" min="0" max="40" value="30" orient="vertical" oninput="deckb.set_cpr_knee (this.value);"/>
+					<label class="left">Knee</label>
+					
+					<input type="range" class="cpr_ratio vslide" min="1" max="20" value="12" orient="vertical" oninput="deckb.set_cpr_ratio (this.value);"/>
+					<label class="left">Ratio</label>
+					
+					<input type="range" class="cpr_reduc vslide" min="-20" max="0" value="0" orient="vertical" oninput="deckb.set_cpr_reduc (this.value);"/>
+					<label class="left">Reduction</label>
+					
+					<input type="range" class="cpr_atck vslide" step="0.01" max="1" value="0.003" orient="vertical" oninput="deckb.set_cpr_atck (this.value);"/>
+					<label class="left">Attack</label>
+					
+					<input type="range" class="cpr_rel vslide" step="0.01" max="1" value="0.25" orient="vertical" oninput="deckb.set_cpr_rel (this.value);"/>
+					<label class="left">Release</label>
+				</div>
+				<div class="mod_right">
+					<button type="reset">RST</button>
+					<button type="button" id="cpr_b_btn" onclick="deckb.compressor_toggle ();">CPR</button>
+				</div>
+			</form>
+			
+			<form class="mod dropzone" type="file">
+				<input type="file" placeholder="DROP SONG HERE!" onchange="deckb.load_track (this.files);"/>
+			</form>
+		</div>
+		<footer>
+			<small id="footer-copy">&copy; 2017 Marc Volker Dickmann</small></p>
+		</footer>
+	</body>
+	<script>
+		var ac = window.AudioContext || window.webkitAudioContext;
+		var actx = new AudioContext();
+		
+		var panner = actx.createStereoPanner ();
+		
+		var aplay_a = document.getElementById ('aplay_a');
+		var aplay_b = document.getElementById ('aplay_b');
+		
+		// OBJECT: DECK
+		// A simple dj deck.
+		var Deck =
+		{
+			// BASE
+			aplay: {},
+			
+			// SOURCE
+			src: {},
+			
+			// GAIN
+			gain: {},
+			
+			// FILTER
+			filter_low: {},
+			filter_low_v: {},
+			filter_low_g: {},
+	
+			filter_high: {},
+			filter_high_v: {},
+			filter_high_g: {},
+			filter_btn: {},
+			
+			// COMPRESSOR
+			compressor: {},
+			compressor_btn: {},
+			
+			// PANNER
+			panner: {},
+			
+			g (u_aplay, u_filter_low_v, u_filter_low_g, u_filter_high_v, u_filter_high_g, u_filter_btn, u_compressor_btn)
+			{
+				// BASE
+				this.aplay = u_aplay;
+				
+				// SOURCE
+				this.src = actx.createMediaElementSource(this.aplay);
+				
+				// GAIN
+				this.gain = actx.createGain();
+				
+				// FILTER: LOWBAND
+				this.filter_low = actx.createBiquadFilter ();
+				this.filter_low_v = document.getElementById (u_filter_low_v);
+				this.filter_low_g = document.getElementById (u_filter_low_g);
+				
+				// FILTER: HIGHBAND
+				this.filter_high = actx.createBiquadFilter ();
+				this.filter_high_v = document.getElementById (u_filter_high_v);
+				this.filter_high_g = document.getElementById (u_filter_high_g);
+				this.filter_btn = document.getElementById (u_filter_btn);
+				
+				// FILTER: VALUES
+				this.filter_low.type = 'lowshelf';
+				this.filter_low.frequency.value = 1000;
+				this.filter_low.gain.value = 0;
+	
+				this.filter_high.type = 'highshelf';
+				this.filter_high.frequency.value = 1000;
+				this.filter_high.gain.value = 0;
+				
+				// COMPRESSOR
+				this.compressor = actx.createDynamicsCompressor ();
+				this.compressor_btn = document.getElementById (u_compressor_btn);
+				
+				this.compressor.threshold.value = -50;
+				this.compressor.knee.value = 40;
+				this.compressor.ratio.value = 12;
+				this.compressor.reduction.value = -20;
+				this.compressor.attack.value = 0;
+				this.compressor.release.value = 0.25;
+				
+				// PANNER
+				this.panner = actx.createStereoPanner ();
+				
+				// CONNECT
+				this.src.connect (this.gain);
+				this.gain.connect (this.panner);
+				this.panner.connect (actx.destination);
+			},
+			
+			// BASE
+			load_track (files)
+			{
+				this.aplay.pause ();
+				var file = URL.createObjectURL (files[0]);
+				this.aplay.src = file;
+			},
+			
+			// GAIN
+			set_gain (v)
+			{
+				this.gain.gain.value = v;
+			},
+			
+			// FILTER
+			filter_set_freq ()
+			{
+				this.filter_low.frequency.value = this.filter_low_v.value;
+				this.filter_high.frequency.value = this.filter_high_v.value;
+			},
+	
+			filter_set_gain ()
+			{
+				this.filter_low.gain.value = this.filter_low_g.value;
+				this.filter_high.gain.value = this.filter_high_g.value;
+			},
+	
+			filter_on ()
+			{
+				this.src.disconnect (this.gain);
+				this.src.connect (this.filter_low);
+				this.filter_low.connect (this.filter_high);
+				this.filter_high.connect (this.gain);
+				this.filter_btn.className = 'active';
+			},
+	
+			filter_off ()
+			{
+				this.src.disconnect (this.filter_low);
+				this.filter_low.disconnect (this.filter_high);
+				this.filter_high.disconnect (this.gain);
+				this.src.connect (this.gain);
+				this.filter_btn.className = '';
+			},
+	
+			filter_toggle ()
+			{
+				if (this.filter_btn.className === 'active')
+				{
+					this.filter_off ();
+				}
+				else
+				{
+					this.filter_on ();
+				}
+			},
+	
+			// COMPRESSOR
+			compressor_on ()
+			{
+				this.gain.disconnect (this.panner);
+				this.gain.connect (this.compressor);
+				this.compressor.connect (this.panner);
+				this.compressor_btn.className = 'active';
+			},
+	
+			compressor_off ()
+			{
+				this.gain.disconnect (this.compressor);
+				this.compressor.disconnect (this.panner);
+				this.gain.connect (this.panner);
+				this.compressor_btn.className = '';
+			},
+	
+			compressor_toggle ()
+			{
+				if (this.compressor_btn.className === 'active')
+				{
+					this.compressor_off ();
+				}
+				else
+				{
+					this.compressor_on ();
+				}
+			},
+	
+			set_cpr_thr (v)
+			{
+				this.compressor.threshold.value = v;
+			},
+	
+			set_cpr_knee (v)
+			{
+				this.compressor.knee.value = v;
+			},
+	
+			set_cpr_ratio (v)
+			{
+				this.compressor.ratio.value = v;
+			},
+	
+			set_cpr_reduc (v)
+			{
+				this.compressor.reduction.value = v;
+			},
+	
+			set_cpr_atck (v)
+			{
+				this.compressor.attack.value = v;
+			},
+	
+			set_cpr_rel (v)
+			{
+				this.compressor.release.value = v;
+			},
+			
+			// PANNER
+			set_pan (v)
+			{
+				this.panner.pan.value = v;
+			}
+		};
+		
+		// DECK: A
+		var decka = Object.create (Deck);
+		decka.g (aplay_a, 'flt_a_low_v', 'flt_a_low_g', 'flt_a_high_v', 'flt_a_high_g', 'flt_a_btn', 'cpr_a_btn');
+		
+		// DECK: B
+		var deckb = Object.create (Deck);
+		deckb.g (aplay_b, 'flt_b_low_v', 'flt_b_low_g', 'flt_b_high_v', 'flt_b_high_g', 'flt_b_btn', 'cpr_b_btn');
+		
+		function mix_pan (v)
+		{
+			panner.pan.value = v;
+		}
+	</script>
+</html>
