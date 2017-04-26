@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>Shapefall</title>
+		<style>
+			/* 8 x 15 grid of 32 x 32 pixel blocks*/
+			canvas {width: 256px; height: 480px; border: 2px solid black;}
+			
+			canvas, .score {float: left;};
+			
+			/* Shapes */
+			.shape {background-color: black;}
+			
+		</style>
+	</head>
+	<body>
+		<h1>Shapefall</h1>
+		<div id="main">
+			<canvas id="g_screen" width="256px" height="480px"></canvas>
+			<h2 id="g_score">0</h2>
+			<form>
+				<input type="textarea" id="savegame" placeholder="Insert your savegame key!" />
+				<button type="button" onclick="savegame_load ();">Load</button>
+			</form>
+		</div>
+		<footer>
+			<small id="footer-copy">&copy; 2017 Marc Volker Dickmann</small>
+		</footer>
+		<script>
+			var g_map =
+			{
+				cols: 8,
+				rows: 16,
+				tsize: 32,
+				
+				tiles:
+				[0, 0, 0, 0, 0, 0, 0, 0,
+				 0, 0, 0, 0, 0, 0, 0, 0,
+				 0, 0, 0, 0, 0, 0, 0, 0,
+				 0, 0, 0, 0, 0, 0, 0, 0,
+				 0, 0, 0, 0, 0, 0, 0, 0,
+				 0, 0, 0, 0, 0, 0, 0, 0,
+				 0, 0, 0, 0, 0, 0, 0, 0,
+				 0, 0, 0, 0, 0, 0, 0, 0,
+				 0, 0, 0, 0, 0, 0, 0, 0,
+				 0, 0, 0, 0, 0, 0, 0, 0,
+				 0, 0, 0, 0, 0, 0, 0, 0,
+				 0, 0, 0, 0, 0, 0, 0, 0,
+				 0, 0, 0, 0, 0, 0, 0, 0,
+				 0, 0, 0, 0, 0, 0, 0, 0,
+				 0, 0, 0, 0, 0, 0, 0, 0,
+				 1, 1, 1, 1, 1, 1, 1, 1],
+				 
+				get_tile (col, row)
+				{
+					return this.tiles[row * this.cols + col];
+				},
+				
+				set_tile (col, row, v)
+				{
+					this.tiles[row * this.cols + col] = v;
+				},
+				
+				check_clear ()
+				{
+					var s;
+					
+					for (var r = 0; r < this.rows - 1; r++)
+					{
+						for (var c = 0, s = true; c < this.cols; c++)
+						{
+							if (this.get_tile (c, r) !== 1)
+							{
+								s = false;
+								break;
+							}
+						}
+						
+						if (s)
+						{
+							for (var c = 0, s = true; c < this.cols; c++)
+							{
+								this.set_tile (c, r, 0);
+							}
+							inc_score (20);
+						}
+					}
+				}
+				
+			};
+			
+			// SOURCE: https://developer.mozilla.org/de/docs/Web/JavaScript/Reference/Global_Objects/Math/math.random
+			function getRandomInt (min, max)
+			{
+				min = Math.ceil(min);
+				max = Math.floor(max);
+				return Math.floor(Math.random() * (max - min)) + min;
+			}
+			
+			var g_shape =
+			{
+				pos_x: 0,
+				pos_y: 1,
+				tsize: 3,
+				tiles:
+					[0, 0, 0,
+					 0, 0, 0,
+					 0, 0, 0],
+				
+				rotate_three ()
+				{
+					var tmp = this.tiles[0];
+					this.tiles[0] = this.tiles[6];
+					this.tiles[6] = this.tiles[8];
+					this.tiles[8] = this.tiles[2];
+					this.tiles[2] = tmp;
+					
+					tmp = this.tiles[1];
+					this.tiles[1] = this.tiles[3];
+					this.tiles[3] = this.tiles[7];
+					this.tiles[7] = this.tiles[5];
+					this.tiles[5] = tmp;
+				},
+				
+				rotate_four ()
+				{
+					var tmp = this.tiles[0];
+					this.tiles[0] = this.tiles[12];
+					this.tiles[12] = this.tiles[15];
+					this.tiles[15] = this.tiles[3];
+					this.tiles[3] = tmp;
+					
+					tmp = this.tiles[1];
+					this.tiles[1] = this.tiles[8];
+					this.tiles[8] = this.tiles[14];
+					this.tiles[14] = this.tiles[7];
+					this.tiles[7] = tmp;
+					
+					tmp = this.tiles[2];
+					this.tiles[2] = this.tiles[4];
+					this.tiles[4] = this.tiles[13];
+					this.tiles[13] = this.tiles[11];
+					this.tiles[11] = tmp;
+					
+					tmp = this.tiles[5];
+					this.tiles[5] = this.tiles[9];
+					this.tiles[9] = this.tiles[10];
+					this.tiles[10] = tmp;
+				},
+				
+				rotate ()
+				{
+					if (this.tsize === 3)
+					{
+						this.rotate_three ();
+					}
+					else if (this.tsize === 4)
+					{
+						this.rotate_four ();
+					}
+				},
+				
+				select_random_type ()
+				{
+					switch (getRandomInt (0, 7))
+					{
+						case 0:
+							this.tsize = 3;
+							this.tiles =
+							[1, 1, 1,
+							 1, 0, 0,
+							 0, 0, 0];
+							break;
+						case 1:
+							this.tsize = 3;
+							this.tiles =
+							[1, 1, 1,
+							 0, 0, 1,
+							 0, 0, 0];
+							break;
+						case 2:
+							this.tiles =
+							[1, 1, 1, 1,
+							 0, 0, 0, 0,
+							 0, 0, 0, 0,
+							 0, 0, 0, 0];
+							break;
+						case 3:
+							this.tsize = 3;
+							this.tiles =
+							[1, 1, 1,
+							 0, 1, 0,
+							 0, 0, 0];
+							break;
+						case 4:
+							this.tsize = 2;
+							this.tiles =
+							[1, 1,
+							 1, 1];
+							break;
+						case 5:
+							this.tsize = 3;
+							this.tiles =
+							[1, 1, 0,
+							 0, 1, 1,
+							 0, 0, 0];
+							break;
+						case 6:
+							this.tsize = 3;
+							this.tiles =
+							[0, 1, 1,
+							 1, 1, 0,
+							 0, 0, 0];
+							break;
+						default:
+							break;
+					}
+				},
+				
+				collides_x (v_map)
+				{
+					for (var c = 0; c < this.tsize; c++)
+					{
+						for (var r = 0; r < this.tsize; r++)
+						{
+							if (this.tiles[r * this.tsize + c] === 1 &&
+							    v_map.get_tile ((this.pos_x + c), (this.pos_y + r)) === 1)
+							{
+								return true;
+							}
+						}
+					}
+					return false;
+				},
+				
+				put (v_map)
+				{
+					for (var c = 0; c < this.tsize; c++)
+					{
+						for (var r = 0; r < this.tsize; r++)
+						{
+							if (this.tiles[r * this.tsize + c] === 1)
+							{
+								v_map.set_tile ((this.pos_x + c), (this.pos_y + r), 1);
+							}
+						}
+					}
+					inc_score (15);
+					v_map.check_clear ();
+					this.select_random_type ();
+				},
+				
+				draw (v_map)
+				{
+					for (var c = 0; c < this.tsize; c++)
+					{
+						for (var r = 0; r < this.tsize; r++)
+						{
+							if (this.tiles[r * this.tsize + c] === 1)
+							{
+								// Collision
+								if (v_map.get_tile ((this.pos_x + c), (this.pos_y + r) + 1) === 1)
+								{
+									this.put (v_map);
+									this.pos_x = 0;
+									this.pos_y = 0;
+									break;
+								}
+								ctx.fillRect ((this.pos_x + c) * map.tsize, (this.pos_y + r) * map.tsize, map.tsize, map.tsize);
+							}
+						}
+					}
+				}
+			};
+			
+			var map = Object.create (g_map);
+			var canv = document.getElementById ('g_screen');
+			var ctx = canv.getContext ('2d');
+			
+			var cnt_sec = 110;
+			var s_cur = Object.create (g_shape);
+			s_cur.select_random_type ();
+			
+			// PLAYER
+			var score = 0;
+			var lbl_score = document.getElementById ('g_score');
+			
+			// PAUSE
+			var s_pause = false;
+			
+			// SAVEGAME
+			var tb_savegame = document.getElementById ('savegame');
+			
+			// INPUT
+			var key_left = false;
+			var key_up = false;
+			var key_right = false;
+			var key_down = false;
+			
+			document.addEventListener("keydown", cb_keydown, false);
+			document.addEventListener("keyup", cb_keyup, false);
+			
+			function cb_keydown (e)
+			{
+				if (e.keyCode === 37)
+				{
+					key_left = true;
+				}
+				else if (e.keyCode === 38)
+				{
+					key_up = true;
+				}
+				else if (e.keyCode === 39)
+				{
+					key_right = true;
+				}
+				else if (e.keyCode === 40)
+				{
+					key_down = true;
+				}
+				/*else
+				{
+					tb_savegame.value = e.keyCode;
+				}*/
+			}
+			
+			function cb_keyup (e)
+			{
+				if (e.keyCode === 37)
+				{
+					key_left = false;
+				}
+				else if (e.keyCode === 38)
+				{
+					key_up = false;
+				}
+				else if (e.keyCode === 39)
+				{
+					key_right = false;
+				}
+				else if (e.keyCode === 40)
+				{
+					key_down = false;
+				}
+				else if (e.keyCode === 80)
+				{
+					if (s_pause)
+					{
+						ival_id = setInterval (draw, 10);
+						s_pause = false;
+					}
+					else
+					{
+						clearInterval (ival_id);
+						tb_savegame.value = map.tiles;
+						s_pause = true;
+					}
+				}
+			}
+			
+			function draw ()
+			{
+				if (cnt_sec > 100)
+				{
+					cnt_sec = 0;
+					s_cur.pos_y++;
+				}
+				else
+				{
+					cnt_sec++;
+				}
+				
+				ctx.clearRect (0, 0, canv.width, canv.height);
+				ctx.fillStyle = 'black';
+				
+				if (key_left)
+				{
+					if (!s_cur.collides_x (map))
+					{
+						s_cur.pos_x--;
+					}
+					key_left = false;
+				}
+				else if (key_up)
+				{
+					s_cur.rotate ();
+					key_up = false;
+				}
+				else if (key_right)
+				{
+					if (!s_cur.collides_x (map))
+					{
+						s_cur.pos_x++;
+					}
+					key_right = false;
+				}
+				else if (key_down)
+				{
+					s_cur.pos_y++;
+					key_down = false;
+				}
+				
+				s_cur.draw (map);
+				
+				for (var c = 0; c < map.cols; c++)
+				{
+					for (var r = 0; r < map.rows; r++)
+					{
+						var tile = map.get_tile (c, r);
+						
+						if (tile !== 0)
+						{
+							ctx.fillRect (c * map.tsize, r * map.tsize, map.tsize, map.tsize);
+						}
+					}
+				}
+			}
+			
+			function inc_score (v)
+			{
+				score += v;
+				lbl_score.innerHTML = score;
+			}
+			
+			function savegame_load ()
+			{
+				map.tiles = tb_savegame.value;
+			}
+			
+			var ival_id = setInterval (draw, 10);
+		</script>
+	</body>
+</html>
