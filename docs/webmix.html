@@ -4,64 +4,203 @@
 		<meta charset="UTF-8" />
 		<title>WebMix</title>
 		<style>
-			html {background: #171717; color: white; font-family: freesans;}
-			body {width: 90%; min-height: 95vh; margin-left: 5%;}
-			div.player {width: 40%; height: 80vh; position: relative;}
-			div.master {width: 19%;}
+			/*----------------------------------------------------*
+			 *			BASE			      *
+			 *--------------------------------------------------- */
+			html
+			{
+				background: #171717;
+				color: white;
+				font-family: freesans;
+			}
 			
-			button, div.player {border: 1px solid white;}
-			button, input[type="range"] {height: 50px; background: none; margin: 5px;}
-			button {width: 50px; border-radius: 100%; border-color: grey;}
+			body
+			{
+				height: 100vh;
+				position: absolute;
+				left: 0;
+			}
 			
-			input[type="range"].vslide {height: auto;}
-			input[type="range"].trackpos, input[type="range"]#pan {margin: 0px; padding: 0px;}
+			footer
+			{
+				height: 50px;
+				position: fixed;
+				bottom: 0;
+				color: grey;
+			}
 			
-			/* LCD */
-			.lcd {height: 48px; line-height: 12px; padding: 1%; border: 1px solid grey;}
+			body, footer
+			{
+				width: 100%;
+			}
 			
-			/* MODULE */
-			form.mod {border-bottom: 1px solid grey; display: flex;}
-			div.mod_left {width: 90%;}
-			div.mod_right {width: 10%;}
+			/* NOBORDER */
+			html, body, footer, form, div, label,
+			p, b
+			{
+				margin: 0;
+				padding: 0;
+			}
+			 
+			/*----------------------------------------------------*
+			 *			PLAYER			      *
+			 *--------------------------------------------------- */
+			.player
+			{
+				width: 39%;
+				margin-top: 1%;
+				border: 1px solid white;
+			}
 			
-			div.basemod {border-bottom: 2px solid darkgrey;}
+			div#decka
+			{
+				margin-left: 1%;
+			}
 			
-			form.mod label {font-size: 12px;}
+			div#deckb
+			{
+				margin-right: 1%;
+			}
 			
-			.dropzone {border-top: 1px solid grey; position: absolute; bottom: 0;}
-			.dropzone input {content: "Select file...";}
+			.master
+			{
+				width: 19%;
+			}
 			
-			input[type="range"].trackpos, input[type="range"]#pan, .dropzone, .dropzone input {width: 100%;}
+			.player, .master
+			{
+				height: 80vh;
+				position: relative;
+			}
 			
-			.left, div.player, div.mod_left, .vslide {float: left;}
-			.right, div.mod_right {float: right;}
+			/*----------------------------------------------------*
+			 *		       CONTROLS			      *
+			 *--------------------------------------------------- */
+			button
+			{
+				width: 50px;
+			}
 			
-			.tcenter, button, .dropzone input {text-align: center;}
+			button, input
+			{
+				margin: 1%;
+				background: none;
+			}
 			
+			/* ROUND */
+			button.round
+			{
+				border-radius: 100%;
+			}
+			
+			button.round, .basemod input
+			{
+				height: 50px;
+			}
+			
+			input#pan
+			{
+				position: absolute;
+				bottom: 0;
+			}
+			
+			/*----------------------------------------------------*
+			 *			LCD			      *
+			 *--------------------------------------------------- */
+			.lcd
+			{
+				height: 48px;
+				line-height: 12px;
+			}
+			
+			/*----------------------------------------------------*
+			 *			MODULE			      *
+			 *--------------------------------------------------- */
+			form.mod
+			{
+				display: flex;
+				border-bottom: 1px solid grey;
+				font-size: 12px;
+			}
+			
+			.mod_left
+			{
+				width: 90%;
+			}
+			
+			.mod_right
+			{
+				width: 10%;
+			}
+			
+			.basemod
+			{
+				border-bottom: 2px solid darkgrey;
+			}
+			
+			.dropzone
+			{
+				border-top: 1px solid grey;
+				position: absolute;
+				bottom: 0;
+			}
+			
+			/*----------------------------------------------------*
+			 *			MISC			      *
+			 *--------------------------------------------------- */
+			/* FULLWIDTH */
+			input[type="range"].trackpos,
+			input[type="range"]#pan, .dropzone, .dropzone input
+			{
+				width: 100%;
+				margin: 0;
+				padding: 0;
+			}
+			
+			.left, .mod_left, .player, .vslide
+			{
+				float: left;
+			}
+			
+			.right, .mod_right
+			{
+				float: right;
+			}
+			
+			.tcenter, button, .dropzone input
+			{
+				text-align: center;
+			}
+			
+			/* BORDER: GREY */
+			.lcd, button
+			{
+				border: 1px solid grey;
+			}
+			
+			/* COLORS */
 			.green {color: green;}
 			.yellow {color: yellow;}
 			.red {color: red;}
-			.orange, button.active {color: orange;}
-			.grey, form.mod label, .dropzone input {color: grey}
-			
-			 footer {width: 100%; height: 50px; position: fixed; bottom: 0; color: grey;}
+			.orange, .active {color: orange;}
+			.grey, .player {color: grey}
 		</style>
 	</head>
 	<body>
-		<div id="decka" class="player">
-			<audio id="aplay_a">Not Supported!</audio>
+		<div id="decka" class="player left">
+			<audio id="aplay_a" o>Not Supported!</audio>
 			
 			<div class="basemod">
-				<button type="button" class="green" onclick="aplay_a.play ();">PLY</button>
-				<button type="button" class="red" onclick="aplay_a.pause ();">STP</button>
-				<button type="button" class="yellow">CUE</button>
+				<button type="button" class="green round" onclick="aplay_a.play ();">PLY</button>
+				<button type="button" class="red round" onclick="aplay_a.pause ();">STP</button>
+				<button type="button" class="yellow round">CUE</button>
 				
 				<input type="range" class="right" step="0.1" min="-1" max="1" value="0" oninput="decka.set_pan (this.value);"/>
 				<input type="range" class="right" step="0.1" max="1" value="1" oninput="decka.set_gain (this.value);"/>
 			</div>
 			
 			<div class="basemod">
-			<input type="range" class="trackpos" value="0"/>
+				<input type="range" class="trackpos" value="0"/>
 			</div>
 			
 			<form class="mod">
@@ -121,20 +260,20 @@
 			<br />
 		</div>
 		
-		<div id="deckb" class="player">
+		<div id="deckb" class="player left">
 			<audio id="aplay_b">Not Supported!</audio>
 			
 			<div class="basemod">
-				<button type="button" class="green" onclick="aplay_b.play ();">PLY</button>
-				<button type="button" class="red" onclick="aplay_b.pause ();">STP</button>
-				<button type="button" class="yellow">CUE</button>
+				<button type="button" class="green round" onclick="aplay_b.play ();">PLY</button>
+				<button type="button" class="red round" onclick="aplay_b.pause ();">STP</button>
+				<button type="button" class="yellow round">CUE</button>
 				
 				<input type="range" class="right" step="0.1" min="-1" max="1" value="0" oninput="deckb.set_pan (this.value);"/>
 				<input type="range" class="right" step="0.1" max="1" value="1" oninput="deckb.set_gain (this.value);"/>
 			</div>
 			
 			<div class="basemod">
-			<input type="range" class="trackpos" value="0"/>
+				<input type="range" class="trackpos" value="0"/>
 			</div>
 			
 			<form class="mod">
@@ -188,7 +327,7 @@
 			</form>
 		</div>
 		<footer>
-			<small id="footer-copy">&copy; 2017 Marc Volker Dickmann</small></p>
+			<small id="footer-copy">&copy; 2017 Marc Volker Dickmann</small>
 		</footer>
 	</body>
 	<script>
