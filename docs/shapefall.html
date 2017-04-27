@@ -8,6 +8,7 @@
 			canvas {width: 45vh; height: 95vh; border: 2px solid black;}
 			canvas, #side {float: left;}
 			
+			#savegame {width: 200px;}
 			h1 {text-align: center;}
 			div#main  {width: 50%; margin-left: 27%;}
 			footer {position: absolute; bottom: 0;}
@@ -21,7 +22,7 @@
 
 				<h2 id="g_score">0</h2>
 				<form>
-					<input type="textarea" id="savegame" placeholder="Insert your savegame key!" />
+					<textarea id="savegame" placeholder="Insert your savegame key!"></textarea>
 					<button type="button" onclick="savegame_load ();">Load</button>
 				</form>
 			</div>
@@ -47,8 +48,13 @@
 					{
 						for (var c = 0; c < this.cols; c++)
 						{
-							this.set_tile (c, r, (r < this.rows - 1 ? 0 : 1));
+							this.set_tile (c, r, 0);
 						}
+					}
+					
+					for (var c = 0; c < this.cols; c++)
+					{
+						this.set_tile (c, v_height, 1);
 					}
 				},
 				
@@ -352,10 +358,6 @@
 				{
 					key_down = true;
 				}
-				/*else
-				{
-					tb_savegame.value = e.keyCode;
-				}*/
 			}
 			
 			function cb_keyup (e)
@@ -482,7 +484,7 @@
 			function game_stop ()
 			{
 				clearInterval (ival_id);
-				tb_savegame.value = map.tiles;
+				savegame_create ();
 			}
 			
 			function gameover ()
@@ -491,9 +493,38 @@
 				s_gameover = true;
 			}
 			
+			function savegame_create ()
+			{
+				var ilen = (map.rows * map.cols) / 5;
+				var raw = map.tiles.join ('').toString ();
+				var data = '';
+				
+				for (var i = 0; i < ilen; i++)
+				{
+					data += parseInt (raw.slice (i * 5, (i * 5) + 5), 2).toString (32);
+				}
+				
+				tb_savegame.value = data;
+			}
+			
 			function savegame_load ()
 			{
-				map.tiles = tb_savegame.value;
+				var ilen = (map.rows * map.cols) / 5;
+				var raw = tb_savegame.value;
+				var data = '';
+				var offset = (map.cols * map.rows) - (raw.length * 5);
+				
+				for (var i = 0; i < raw.length; i++)
+				{
+					data = parseInt (raw[i], 32).toString (2);
+					data = data.padStart (5, '0');
+					
+					for (var j = 0; j < 5; j++)
+					{
+						map.tiles[offset + (i * 5) + j] = parseInt (data[j], 2);
+					}
+				}
+				tb_savegame.value = '';
 			}
 			
 			var ival_id = setInterval (draw, 10);
