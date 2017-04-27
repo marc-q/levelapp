@@ -21,6 +21,7 @@
 				<h1>Shapefall</h1>
 
 				<h2 id="g_score">0</h2>
+				<h2 id="g_lines">0</h2>
 				<form>
 					<textarea id="savegame" placeholder="Insert your savegame key!"></textarea>
 					<button type="button" onclick="savegame_load ();">Load</button>
@@ -117,6 +118,7 @@
 					}
 					
 					inc_score (100 * amnt);
+					inc_lines (amnt);
 				}
 				
 			};
@@ -156,7 +158,7 @@
 				select_random_type ()
 				{
 					this.rot = 0;
-					switch (getRandomInt (0, 7))
+					switch (getRandomInt (0, 8))
 					{
 						case 0:
 							this.width = 3;
@@ -247,6 +249,15 @@
 							  1, 1,
 							  0, 1]];
 							break;
+						case 7:
+							this.width = 3;
+							this.height = 3;
+							this.rot_max = 0;
+							this.tiles =
+							[[0, 1, 0,
+							  1, 1, 1,
+							  0, 1, 0]];
+							break;
 						default:
 							break;
 					}
@@ -322,7 +333,9 @@
 			
 			// PLAYER
 			var score = 0;
+			var lines = 0;
 			var lbl_score = document.getElementById ('g_score');
+			var lbl_lines = document.getElementById ('g_lines');
 			
 			// STATES
 			var s_pause = false;
@@ -474,6 +487,12 @@
 			{
 				score += v;
 				lbl_score.innerHTML = score;
+			}
+			
+			function inc_lines (v)
+			{
+				lines += v;
+				lbl_lines.innerHTML = lines;
 			}
 			
 			function game_start ()
